@@ -2,7 +2,7 @@
   <div class="page-container">
     <div class="main-content" v-if="video">
       <div class="video-wrapper">
-        <StreamPlayer :videoId="videoId" :streamType="resolvedStreamType" @ended="onPlayerEnded" />
+        <StreamPlayer :videoId="videoId" :streamType="resolvedStreamType" @ended="onPlayerEnded" @play-autoplay-candidate="onPlayAutoplayCandidate" />
       </div>
 
       <h1 class="video-title" ref="videoTitle">{{ title }}</h1>
@@ -308,6 +308,17 @@ export default {
         }, 3000);
       } catch (e) {
         console.error("onPlayerEnded error", e);
+      }
+    },
+
+    onPlayAutoplayCandidate({ id, prefetched }) {
+      try {
+        // 自動再生候補が来たら、すぐにそのvideoIdへ移行する
+        if (!id) return;
+        const query = { v: id };
+        this.$router.push({ path: "/watch", query });
+      } catch (e) {
+        console.error("onPlayAutoplayCandidate error", e);
       }
     },
 

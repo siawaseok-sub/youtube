@@ -1,7 +1,7 @@
 <template>
   <div class="video-wrapper">
       <StreamType1 v-if="currentStreamType === '1'" :videoId="videoId" :reloadStream="reloadStream" @ended="onEnded" />
-      <StreamType2 v-else-if="currentStreamType === '2'" :videoId="videoId" :reloadStream="reloadStream" @ended="onEnded" />
+      <StreamType2 v-else-if="currentStreamType === '2'" :videoId="videoId" :reloadStream="reloadStream" @ended="onEnded" @play-autoplay-candidate="onPlayAutoplayCandidate" />
       <StreamType3 v-else-if="currentStreamType === '3'" :videoId="videoId" :reloadStream="reloadStream" @ended="onEnded" />
   </div>
 </template>
@@ -18,7 +18,7 @@ const props = defineProps({
   streamType: { type: String, default: "" }
 });
 
-const emit = defineEmits(["ended"]);
+const emit = defineEmits(["ended", "play-autoplay-candidate"]);
 
 const currentStreamType = ref(props.streamType || "1");
 
@@ -28,6 +28,14 @@ function reloadStream() {
 
 function onEnded(payload) {
   emit('ended', payload);
+}
+
+function onPlayAutoplayCandidate({ id, prefetched }) {
+  // 次の動画IDに切り替える
+  if (id) {
+    // 親コンポーネントへ emit して videoId を更新させる
+    emit('play-autoplay-candidate', { id, prefetched });
+  }
 }
 
 watch(

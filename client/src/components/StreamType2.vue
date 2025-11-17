@@ -56,7 +56,7 @@
 
     <!-- その他: videourl (video+audio) の再生 -->
     <template v-else>
-      <video ref="videoRef" preload="auto" autoplay controls>
+      <video ref="videoRef" preload="auto" :autoplay="autoplayEnabled" controls>
         <source :src="sources[selectedQuality]?.video?.url" :type="sources[selectedQuality]?.video?.mimeType" />
       </video>
       <div v-if="showUnmutePrompt" class="unmute-prompt" @click.stop="handleUnmuteClick">
@@ -153,9 +153,24 @@ let _loopResumeTimer = null;
 let _loopBufferListenersAttached = false;
 const BUFFER_RESUME_SECONDS = 4;
 let _onEndedAttached = false;
-let _onEnded = () => { try { emit('ended'); } catch (e) {} };
 
-// 再生履歴（直近3件）管理用キー
+// ended イベントハンドラ（オブジェクトのメソッドとして保持）
+const endedHandler = {
+  fn: async () => {
+    try { emit('ended'); } catch (e) {}
+    try { pushToHistory(props.videoId); } catch (e) {}
+    if (!autoplayEnabled.value) return;
+    try {
+      const candId = await ensurePrefetchedCandidate();
+      if (!candId) return;
+      emit('play-autoplay-candidate', { id: candId, prefetched: prefetchCache[candId] || null });
+    } catch (e) {}
+  }
+};
+
+let _onEnded = async () => {
+  await endedHandler.fn();
+};
 const PLAY_HISTORY_KEY = 'yt_play_history_v1';
 // プリフェッチキャッシュ
 const prefetchCache = {};
@@ -231,18 +246,6 @@ async function ensurePrefetchedCandidate() {
   } catch (e) { return null; }
 }
 
-// ended 時の処理: 終了イベント発行 + 自動再生が有効ならプリフェッチ済み候補を再生リクエスト
-_onEnded = async () => {
-  try { emit('ended'); } catch (e) {}
-  try { pushToHistory(props.videoId); } catch (e) {}
-  if (!autoplayEnabled.value) return;
-  try {
-    const candId = await ensurePrefetchedCandidate();
-    if (!candId) return;
-    emit('play-autoplay-candidate', { id: candId, prefetched: prefetchCache[candId] || null });
-  } catch (e) {}
-};
-
 const nativeHlsSupported = ref(false);
 const hasM3u8 = ref(false);
 
@@ -260,6 +263,11 @@ onMounted(() => {
   if (videoRef.value) {
     videoRef.value.addEventListener('mousemove', showSettingsBox);
     videoRef.value.addEventListener('click', showSettingsBox);
+    // ended リスナを初期化時に追加
+    try {
+      videoRef.value.addEventListener('ended', _onEnded);
+      _onEndedAttached = true;
+    } catch (e) {}
     // その他設定を反映
     applyRepeatAndAutoplay();
   }
@@ -563,6 +571,15 @@ function applyHlsSetup(prevTime = 0) {
       }
     } catch (e) {}
 
+    // ended リスナを再attach
+    if (videoRef.value) {
+      try {
+        videoRef.value.removeEventListener('ended', _onEnded);
+        videoRef.value.addEventListener('ended', _onEnded);
+        _onEndedAttached = true;
+      } catch (e) {}
+    }
+
     const granted2 = (() => { try { return localStorage.getItem(USER_GESTURE_KEY) === '1'; } catch (e) { return false; } })();
 
     try {
@@ -627,6 +644,16 @@ watch(selectedQuality, () => {
         selectedPlaybackRate
       );
       applyRepeatAndAutoplay();
+      
+      // ended リスナを再attach
+      if (videoRef.value) {
+        try {
+          videoRef.value.removeEventListener('ended', _onEnded);
+          videoRef.value.addEventListener('ended', _onEnded);
+          _onEndedAttached = true;
+        } catch (e) {}
+      }
+      
       const granted2 = (() => { try { return localStorage.getItem(USER_GESTURE_KEY) === '1'; } catch (e) { return false; } })();
       try {
         if (videoRef.value) {
@@ -789,6 +816,15 @@ async function fetchStreamUrl(id) {
 
       const granted = (() => { try { return localStorage.getItem(USER_GESTURE_KEY) === '1'; } catch (e) { return false; } })();
 
+      // ended リスナを確実に再attach
+      if (videoRef.value) {
+        try {
+          videoRef.value.removeEventListener('ended', _onEnded);
+          videoRef.value.addEventListener('ended', _onEnded);
+          _onEndedAttached = true;
+        } catch (e) {}
+      }
+
       // If selected entry has HLS URL and device can/wants HLS -> use single video HLS flow
       if (selEntry?.url && useM3u8Playback()) {
         try {
@@ -876,9 +912,14 @@ watch(videoRef, (newEl, oldEl) => {
     _onEndedAttached = false;
   }
   if (newEl) {
-    try { newEl.addEventListener('ended', _onEnded); _onEndedAttached = true; } catch (e) {}
+    try {
+      // リスナ追加前に既存のものがあれば削除
+      newEl.removeEventListener('ended', _onEnded);
+      newEl.addEventListener('ended', _onEnded);
+      _onEndedAttached = true;
+    } catch (e) {}
   }
-});
+}, { flush: 'post' });
 
 </script>
 
