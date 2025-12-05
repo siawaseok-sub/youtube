@@ -71,13 +71,12 @@ const loading = ref(true);
 const viewportWidth = ref(window.innerWidth);
 
 const marginLeftClass = computed(() => {
-  // ウィンドウ幅に応じて margin-left を決定
   if (viewportWidth.value >= 1315) {
-    return 'with-sidebar'; // 250px
+    return 'with-sidebar';
   } else if (viewportWidth.value >= 790) {
-    return 'compact-mode'; // 70px (compact sidebar)
+    return 'compact-mode';
   } else {
-    return 'no-sidebar'; // 0px (hidden sidebar)
+    return 'no-sidebar';
   }
 });
 
@@ -154,10 +153,6 @@ export default {
 .history-container {
   padding: 24px;
   transition: margin-left 0.3s ease;
-}
-
-.history-container.compact-mode {
-  margin-left: 70px;
 }
 
 .history-container.no-sidebar {

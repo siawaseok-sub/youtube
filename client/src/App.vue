@@ -92,13 +92,22 @@ export default {
     };
     window.addEventListener('resize', updateSidebarByWidth);
 
-    // Monitor route changes and hide sidebar for /watch page
+    // Monitor route changes - only control sidebar for /watch page
+    // For other pages, preserve the user's current sidebar state
+    const watchPageOpen = ref(null); // Store sidebar state before entering /watch
     watch(() => route.path, (newPath) => {
       if (newPath === '/watch') {
+        // Entering /watch: store current state and set to hidden
+        if (watchPageOpen.value === null) {
+          watchPageOpen.value = sidebarOpen.value;
+        }
         sidebarOpen.value = false;
-      } else {
-        updateSidebarByWidth();
+      } else if (watchPageOpen.value !== null) {
+        // Leaving /watch: restore previous state
+        sidebarOpen.value = watchPageOpen.value;
+        watchPageOpen.value = null;
       }
+      // For other page transitions, don't modify sidebarOpen
     });
 
     // Provide settings modal functions
@@ -175,12 +184,27 @@ export default {
     margin-left: 70px;
   }
 }
-
 @media (min-width: 790px) and (max-width: 1314px) {
+  /* Default to open width unless the sidebar is explicitly closed */
   .app-content {
+    margin-left: 250px;
+  }
+
+  .app-content.sidebar-closed {
     margin-left: 70px;
   }
 }
+
+@media (max-width: 1330px) {
+  .app-content > .yt-watch-page {
+  }
+  .app-content > .yt-watch-page {
+  }
+  .app-content:has(> .yt-watch-page) {
+    margin-left: 0px;
+  }
+}
+
 
 @media (max-width: 789px) {
   .app-content {

@@ -315,11 +315,11 @@ export default {
 
 .sidebar.compact-mode .sidebar-label {
   display: block;
-  font-size: 10px;
+  font-size: 12px;
   white-space: nowrap;
   overflow: hidden;
   text-overflow: ellipsis;
-  max-width: 60px;
+  max-width: 73px;
   text-align: center;
   line-height: 1.2;
 }

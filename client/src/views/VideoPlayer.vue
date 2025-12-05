@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container">
+  <div class="page-container yt-watch-page">
     <div class="main-content" v-if="video">
       <div class="video-wrapper">
         <StreamPlayer :videoId="videoId" :streamType="resolvedStreamType" @ended="onPlayerEnded" @play-autoplay-candidate="onPlayAutoplayCandidate" @autoplay-no-suitable-video="onAutoplayNoSuitableVideo" />
