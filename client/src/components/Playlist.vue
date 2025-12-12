@@ -8,11 +8,10 @@
       <h2 class="playlist-title" style="color: var(--text-primary);">{{ playlist.title }}</h2>
       <p class="playlist-meta" style="color: var(--text-primary);">
         動画本数: {{ playlist.totalItems }}
-        <span class="views" v-if="displayType !== 'watch'">｜再生数: {{ playlist.views }}回</span>
+        <span class="views" v-if="displayType !== 'watch'">｜ {{ playlist.views }}</span>
       </p>
     </template>
 
-    <!-- スクロール対象コンテナに ref を追加 -->
     <div
       ref="scrollContainer"
       class="playlist-items-scroll"
@@ -26,7 +25,8 @@
         :data-video-id="item.videoId"
       >
         <router-link :to="displayType !== 'channel' ? `/watch?v=${item.videoId}&list=${playlist.playlistId}` : `/watch?v=${item.videoId}`" class="video-link">
-          <div v-if="displayType === 'watch'" class="watch-layout">
+          
+          <div v-if="displayType === 'watch'" class="watch-layout" style="margin-block-end: 0px; margin-block-start: 0px;">
             <div class="thumbnail-wrapper small-thumb">
               <img
                 :src="item.thumbnail || getPrimaryThumbnail(item.videoId)"
@@ -37,9 +37,14 @@
               <span class="duration" v-if="item.duration">{{ item.duration }}</span>
             </div>
             <div class="text-content">
-              <p class="title" :title="item.title">{{ item.title }}</p>
-              <p class="author">{{ item.author }}</p>
-            </div>
+              <p class="title" :title="item.title" style="margin-block-end: 0px; margin-block-start: 0px; padding-top: 7px;">{{ item.title }}</p>
+              <p class="author" style="margin-block-end: 0px; margin-block-start: 5px;">{{ item.author }}</p>
+              <p class="meta-info" style="margin-block-end: 0px;" v-if="item.views || item.published">
+                <span v-if="item.views">{{ item.views }}</span>
+                <span v-if="item.views && item.published"> • </span>
+                <span v-if="item.published">{{ item.published }}</span>
+              </p>
+              </div>
           </div>
 
           <div v-else>
@@ -53,8 +58,13 @@
               <span class="duration" v-if="item.duration">{{ item.duration }}</span>
             </div>
             <p class="title" :title="item.title">{{ item.title }}</p>
-            <p class="author">{{ item.author }}</p>
-          </div>
+            <p class="author" style="margin-block-end: 0px;">{{ item.author }}</p>
+            <p class="meta-info" v-if="item.views || item.published">
+              <span v-if="item.views">{{ item.views }}</span>
+              <span v-if="item.views && item.published"> • </span>
+              <span v-if="item.published">{{ item.published }}</span>
+            </p>
+            </div>
         </router-link>
       </div>
     </div>
@@ -86,7 +96,6 @@ const playlist = ref(null);
 const loading = ref(false);
 const error = ref(false);
 
-// スクロール対象の要素への参照
 const scrollContainer = ref(null);
 
 const playlistId = computed(() => props.playlistId || route.query.list || "");
@@ -104,16 +113,13 @@ onMounted(async () => {
   error.value = false;
 
   try {
-    // 自作プレイリスト（ID が数値）か YouTube プレイリスト（文字列）かを判定
     const isCustomPlaylist = /^\d+$/.test(playlistId.value);
     let data;
 
     if (isCustomPlaylist) {
-      // 自作プレイリストを IndexedDB から取得
       const customPl = await getPlaylistById(parseInt(playlistId.value, 10));
       if (!customPl) throw new Error("プレイリストが見つかりません");
       
-      // YouTube API 形式に合わせてデータ変換
       data = {
         title: customPl.name,
         playlistId: customPl.id,
@@ -125,12 +131,14 @@ onMounted(async () => {
           thumbnail: item.thumbnailBinary 
             ? arrayBufferToBase64(item.thumbnailBinary)
             : null,
-          duration: null, // 自作プレイリストには時間情報がない
+          duration: null,
+          // ▼ 追加: 自作プレイリスト側にデータがある場合に備えてマッピング（なければnull）
+          views: item.views || null,
+          published: item.published || null,
         })),
         isCustom: true,
       };
     } else {
-      // YouTube プレイリストを API から取得
       data = await apiRequest({
         params: { playlist: playlistId.value },
         retries: 1,
@@ -146,7 +154,6 @@ onMounted(async () => {
     }
 
     await nextTick();
-    // 中央にスクロール
     if (playVideoId.value && scrollContainer.value) {
       const containerEl = scrollContainer.value;
       const target = containerEl.querySelector(`.playlist-item[data-video-id="${playVideoId.value}"]`);
@@ -192,6 +199,7 @@ function arrayBufferToBase64(arrayBuffer, mimeType = 'image/jpeg') {
 </script>
 
 <style scoped>
+/* 既存のスタイル */
 .playlist-item.active {
   background-color: var(--hover-bg);
   transition: background-color 0.2s ease;
@@ -239,7 +247,6 @@ function arrayBufferToBase64(arrayBuffer, mimeType = 'image/jpeg') {
 .scroll-watch {
   display: flex;
   flex-direction: column;
-  gap: 5px;
   overflow-y: auto;
   max-height: 420px;
   padding-right: 6px;
@@ -318,6 +325,17 @@ function arrayBufferToBase64(arrayBuffer, mimeType = 'image/jpeg') {
   overflow: hidden;
   text-overflow: ellipsis;
   margin-left: 2px;
+}
+
+.meta-info {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-left: 2px;
+  margin-top: 2px;
 }
 
 .watch-layout {
