@@ -69,6 +69,7 @@
 import { ref, onMounted, nextTick, computed } from "vue";
 import { useRoute } from "vue-router";
 import { apiRequest } from "@/services/requestManager";
+import { getPlaylistById } from "@/utils/playlistManager";
 
 const props = defineProps({
   playlistId: String,
@@ -103,13 +104,40 @@ onMounted(async () => {
   error.value = false;
 
   try {
-    // 中央管理された apiRequest を使用（JSONP フォールバックを許可）
-    const data = await apiRequest({
-      params: { playlist: playlistId.value },
-      retries: 1,
-      timeout: 30000,
-      jsonpFallback: true,
-    });
+    // 自作プレイリスト（ID が数値）か YouTube プレイリスト（文字列）かを判定
+    const isCustomPlaylist = /^\d+$/.test(playlistId.value);
+    let data;
+
+    if (isCustomPlaylist) {
+      // 自作プレイリストを IndexedDB から取得
+      const customPl = await getPlaylistById(parseInt(playlistId.value, 10));
+      if (!customPl) throw new Error("プレイリストが見つかりません");
+      
+      // YouTube API 形式に合わせてデータ変換
+      data = {
+        title: customPl.name,
+        playlistId: customPl.id,
+        totalItems: customPl.items.length,
+        items: customPl.items.map((item) => ({
+          videoId: item.id,
+          title: item.title,
+          author: item.authorName,
+          thumbnail: item.thumbnailBinary 
+            ? arrayBufferToBase64(item.thumbnailBinary)
+            : null,
+          duration: null, // 自作プレイリストには時間情報がない
+        })),
+        isCustom: true,
+      };
+    } else {
+      // YouTube プレイリストを API から取得
+      data = await apiRequest({
+        params: { playlist: playlistId.value },
+        retries: 1,
+        timeout: 30000,
+        jsonpFallback: true,
+      });
+    }
 
     playlist.value = data;
 
@@ -147,6 +175,18 @@ function onImageError(event, id) {
   if (!event.target.dataset.error) {
     event.target.src = `https://i.ytimg.com/vi/${id}/sddefault.jpg`;
     event.target.dataset.error = "true";
+  }
+}
+
+function arrayBufferToBase64(arrayBuffer, mimeType = 'image/jpeg') {
+  if (!arrayBuffer) return null;
+  try {
+    const bytes = new Uint8Array(arrayBuffer);
+    let binary = '';
+    for (let i = 0; i < bytes.length; i++) binary += String.fromCharCode(bytes[i]);
+    return `data:${mimeType};base64,${btoa(binary)}`;
+  } catch (e) {
+    return null;
   }
 }
 </script>
