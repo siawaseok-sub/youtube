@@ -63,6 +63,13 @@ export function getEffectiveApiUrl() {
 // URL にパラメータをつける
 export function buildUrl(base, params = {}) {
   try {
+    // Special-case: if caller provides a raw query string under __rawQuery,
+    // use it as-is (no encoding) so callers can control exact parameter formatting.
+    if (params && typeof params.__rawQuery === "string") {
+      const sep = base.includes("?") ? "&" : "?";
+      return base + (params.__rawQuery ? sep + params.__rawQuery : "");
+    }
+
     const url = new URL(base);
     Object.keys(params).forEach((k) => {
       if (params[k] == null) return;

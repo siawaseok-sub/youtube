@@ -443,7 +443,8 @@ export default {
         this.error = null;
         // requestManager の apiRequest を使って中央集約されたリクエストを実行
         const data = await apiRequest({
-          params: { video: id, depth: 1 },
+          // Use raw query formatting required: video=動画ID==p==depth==i==1
+          params: { __rawQuery: `video=${id}==p==depth==i==1` },
           method: "GET",
           retries: maxRetries,
           timeout: 15000,
@@ -514,7 +515,9 @@ export default {
       this.loadingMore = true;
       try {
         const data = await apiRequest({
-          params: { video: this.videoId, token: this.nextContinuationToken, depth: 2 },
+          // Use raw query formatting required:
+          // video=動画ID==p==token==i==トークン==p==depth==i==2
+          params: { __rawQuery: `video=${this.videoId}==p==token==i==${this.nextContinuationToken}==p==depth==i==2` },
           method: "GET",
           retries: 3,
           timeout: 15000,
