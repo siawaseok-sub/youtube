@@ -408,17 +408,11 @@ export default {
               } catch (e) {}
             }
 
-            // フィルターが有効な場合はフォールバック処理をしない
-            // （StreamType2 の自動再生イベントに任せる。条件に合う動画がなければ onAutoplayNoSuitableVideo が呼ばれる）
             const filterConfig = window.__autoplayDurationFilter || { enabled: false };
             if (filterConfig.enabled) {
-              // フィルターが有効な場合、StreamType2 の候補選択イベントを待つ
-              // 候補がない場合は onAutoplayNoSuitableVideo が呼ばれる
               return;
             }
 
-            // フィルターが無効な場合のみフォールバック処理（最初の関連動画を再生）
-            // 決定後、元の3秒遅延で遷移をセット
             this._autoplayTimer = setTimeout(() => {
               const next =
                 this.relatedVideos && this.relatedVideos.length
@@ -669,8 +663,8 @@ export default {
     },
   },
 };
-</script>
 
+</script>
 
 <style scoped>
 .add-playlist-btn {
@@ -682,6 +676,7 @@ export default {
   border-radius: 30px;
   cursor: pointer;
 }
+
 #mainvideo-likeCount {
     font-size: 14px;
     padding: 4px 11px;
