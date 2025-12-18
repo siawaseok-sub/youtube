@@ -1,5 +1,5 @@
 <template>
-  <div class="page-container">
+  <div class="page-container yt-watch-page">
     <div class="main-content" v-if="video">
       <div class="video-wrapper">
         <StreamPlayer :videoId="videoId" :streamType="resolvedStreamType" @ended="onPlayerEnded" @play-autoplay-candidate="onPlayAutoplayCandidate" @autoplay-no-suitable-video="onAutoplayNoSuitableVideo" />
@@ -22,39 +22,22 @@
           <p class="subscriber-count">{{ subscriberCount }}</p>
         </div>
 
-        <div
-          class="custom-dropdown"
-          @click="toggleDropdown"
-          style="margin-left: auto"
-        >
-          <span class="custom-dropdown-label">
-            {{
-              !resolvedStreamType
-                ? "再生出来ない場合"
-                : resolvedStreamType === "1"
-                ? "ブロックされた場合はこちら"
-                : resolvedStreamType === "2"
-                ? "再生モード：タイプ２"
-                : "再生出来ない場合"
-            }}
-            <span class="dropdown-ending">▼</span>
-          </span>
+        <div class="channel-controls">
+          <button
+            class="subscribe-btn"
+            :class="{ subscribed: subscribedLocal }"
+            @click.stop="toggleSubscribe"
+            :title="subscribedLocal ? '登録解除' : '登録'"
+          >
+            {{ subscribedLocal ? '登録解除' : '登録' }}
+          </button>
 
-          <div v-if="isDropdownOpen" class="custom-dropdown-menu">
-            <div
-              class="custom-dropdown-item"
-              @click.stop="selectStreamType('1')"
-            >
-              通常
-            </div>
-            <div
-              class="custom-dropdown-item"
-              @click.stop="selectStreamType('2')"
-              style="color: red;"
-            >
-              再生できない場合こちら
-            </div>
-          </div>
+          <StreamTypeDropdown
+            :resolvedStreamType="resolvedStreamType"
+            :isOpen="isDropdownOpen"
+            @toggle="toggleDropdown"
+            @select="selectStreamType"
+          />
         </div>
       </div>
       <div
@@ -65,91 +48,32 @@
         "
       >
         <div class="video-meta">
-          <span>{{ viewCount.replace(/\s+/g, '') }}</span>・
-          <span>高評価数{{ likeCount }}</span>
-          <span class="dot">　</span>
-          <span>{{ relativeDate }}</span>
-          <div style="padding-top: 10px;">
+          <span>{{ viewCount.replace(/\s+/g, '') }}</span>
+          <span>・{{ relativeDate }}</span>
+          <div style="padding-top: 10px; display: flex; align-items:center; gap:8px;">
+            <div id=mainvideo-likeCount>
+              <svg style="padding-top: 2px; padding-right: 4px;" width="20" height="20" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" preserveAspectRatio="xMidYMid meet" transform="translate3d(0px, 0px, 0px)"> <defs>  <clipPath id="__lottie_element_402">   <rect height="48" id="svg_1" width="48" x="0" y="0"/>  </clipPath>  <clipPath id="__lottie_element_419">   <path d="m-37.97,-32.54l480,0l0,480l-480,0l0,-480z" id="svg_2"/>  </clipPath>  <clipPath id="__lottie_element_429">   <path d="m-37.97,-32.54l480,0l0,480l-480,0l0,-480z" id="svg_3"/>  </clipPath>  <clipPath id="__lottie_element_439">   <path d="m-37.97,-32.54l480,0l0,480l-480,0l0,-480z" id="svg_4"/>  </clipPath>  <clipPath id="__lottie_element_449">   <path d="m-37.97,-32.54l480,0l0,480l-480,0l0,-480z" id="svg_5"/>  </clipPath>  <clipPath id="__lottie_element_459">   <path d="m-37.97,-32.54l480,0l0,480l-480,0l0,-480z" id="svg_6"/>  </clipPath> </defs> <g class="layer">  <title>レイヤー1</title>  <g clip-path="url(#__lottie_element_402)" id="svg_7">   <g clip-path="url(#__lottie_element_459)" display="none" id="svg_8" transform="matrix(0.0567383 -0.166685 0.174622 0.0541596 -11.6766 76.011)">    <g display="block" id="svg_9" transform="matrix(0.750315 0.66108 -0.66108 0.750315 286.276 187.478)">     <path d="m-51.09,-298.22c0,0 0,-0.62 0,-0.62" fill-opacity="0" id="svg_10" stroke="var(--normal-color)" stroke-linecap="round" stroke-linejoin="round" stroke-width="0"/>     <g id="svg_11" transform="matrix(1 0 0 1.2 0 0)"/>    </g>    <g display="block" id="svg_12" transform="matrix(0.994522 -0.104524 0.104524 0.994522 231.638 160.438)">     <path d="m97.01,-278.06c0,0 0,-0.63 0,-0.63" fill-opacity="0" id="svg_13" stroke="var(--normal-color)" stroke-linecap="round" stroke-linejoin="round" stroke-width="0"/>     <g id="svg_14" transform="matrix(1 0 0 1.2 0 0)"/>    </g>   </g>   <g clip-path="url(#__lottie_element_449)" display="none" id="svg_15" transform="matrix(-0.148543 -0.103018 0.107923 -0.141791 53.5988 107.759)">    <g display="block" id="svg_16" transform="matrix(0.750315 0.66108 -0.66108 0.750315 286.276 187.478)">     <path d="m154.29,-223.23c0,0 0,-0.62 0,-0.62" fill-opacity="0" id="svg_17" stroke="var(--normal-color)" stroke-linecap="round" stroke-linejoin="round" stroke-width="0"/>     <g id="svg_18" transform="matrix(1 0 0 1.2 0 0)"/>    </g>    <g display="block" id="svg_19" transform="matrix(0.994522 -0.104524 0.104524 0.994522 231.638 160.438)">     <path d="m180.9,-76.15c0,0 0,-0.63 0,-0.63" fill-opacity="0" id="svg_20" stroke="var(--normal-color)" stroke-linecap="round" stroke-linejoin="round" stroke-width="0"/>     <g id="svg_21" transform="matrix(1 0 0 1.2 0 0)"/>    </g>   </g>   <g clip-path="url(#__lottie_element_439)" display="none" id="svg_22" transform="matrix(-0.148543 0.103018 -0.107923 -0.141791 105.402 58.3104)">    <g display="block" id="svg_23" transform="matrix(0.750315 0.66108 -0.66108 0.750315 286.276 187.478)">     <path d="m146.45,-4.73c0,0 0,-0.62 0,-0.62" fill-opacity="0" id="svg_24" stroke="var(--normal-color)" stroke-linecap="round" stroke-linejoin="round" stroke-width="0"/>     <g id="svg_25" transform="matrix(1 0 0 1.2 0 0)"/>    </g>    <g display="block" id="svg_26" transform="matrix(0.994522 -0.104524 0.104524 0.994522 231.638 160.438)">     <path d="m14.8,66.03c0,0 0,-0.63 0,-0.63" fill-opacity="0" id="svg_27" stroke="var(--normal-color)" stroke-linecap="round" stroke-linejoin="round" stroke-width="0"/>     <g id="svg_28" transform="matrix(1 0 0 1.2 0 0)"/>    </g>   </g>   <g clip-path="url(#__lottie_element_429)" display="none" id="svg_29" transform="matrix(0.0567383 0.166685 -0.174622 0.0541596 72.1421 -3.99831)">    <g display="block" id="svg_30" transform="matrix(0.750315 0.66108 -0.66108 0.750315 286.276 187.478)">     <path d="m-63.78,55.33c0,0 0,-0.62 0,-0.62" fill-opacity="0" id="svg_31" stroke="var(--normal-color)" stroke-linecap="round" stroke-linejoin="round" stroke-width="0"/>     <g id="svg_32" transform="matrix(1 0 0 1.2 0 0)"/>    </g>    <g display="block" id="svg_33" transform="matrix(0.994522 -0.104524 0.104524 0.994522 231.638 160.438)">     <path d="m-171.76,-48.01c0,0 0,-0.63 0,-0.63" fill-opacity="0" id="svg_34" stroke="var(--normal-color)" stroke-linecap="round" stroke-linejoin="round" stroke-width="0"/>     <g id="svg_35" transform="matrix(1 0 0 1.2 0 0)"/>    </g>   </g>   <g clip-path="url(#__lottie_element_419)" display="none" id="svg_36" transform="matrix(0.183609 0 0 0.175264 -0.216196 6.94126)">    <g display="block" id="svg_37" transform="matrix(0.750315 0.66108 -0.66108 0.750315 286.276 187.478)">     <path d="m-185.88,-126.05c0,0 0,-0.62 0,-0.62" fill-opacity="0" id="svg_38" stroke="var(--normal-color)" stroke-linecap="round" stroke-linejoin="round" stroke-width="0"/>     <g id="svg_39" transform="matrix(1 0 0 1.2 0 0)"/>    </g>    <g display="block" id="svg_40" transform="matrix(0.994522 -0.104524 0.104524 0.994522 231.638 160.438)">     <path d="m-120.94,-260.67c0,0 0,-0.63 0,-0.63" fill-opacity="0" id="svg_41" stroke="var(--normal-color)" stroke-linecap="round" stroke-linejoin="round" stroke-width="0"/>     <g id="svg_42" transform="matrix(1 0 0 1.2 0 0)"/>    </g>   </g>   <g display="none" id="svg_43" transform="matrix(0.183609 0 0 0.175264 43.85 49.0047)"/>   <g display="none" id="svg_44" transform="matrix(1.83609 0 0 1.75264 39.9942 42.345)">    <path d="m-13.5,-16.04c1.79,0 3.25,1.46 3.25,3.25c0,1.79 -1.46,3.25 -3.25,3.25c-1.79,0 -3.25,-1.46 -3.25,-3.25c0,-1.79 1.46,-3.25 3.25,-3.25zm0.8,-6.74c1.79,0.44 2.78,2.29 2.35,4.06c-0.19,0.76 -0.39,1.52 -0.71,2.47c-0.31,0.96 1.35,1.32 0.19,3.91c-0.88,1.98 -6.38,0.28 -5.36,-2.62c0.89,-2.51 1.71,-4.88 2.56,-7.3c0.15,-0.43 0.56,-0.63 0.97,-0.52z" fill="var(--normal-color)" id="svg_45"/>   </g>   <g display="none" id="svg_46" transform="matrix(1.83609 0 0 1.75264 43.85 41.9945)">    <path d="m-13.71,-15.25c0.48,0.44 0.87,0.45 1.54,0.45c0,0 5.29,0 5.29,0c0.85,0 1.62,0.48 2,1.24c0,0 0.18,0.36 0.18,0.36c0.4,0.8 0.14,1.78 -0.6,2.28c-0.13,0.08 -0.2,0.22 -0.2,0.37c0,0 0,0.07 0,0.07c0,0.12 0.04,0.25 0.12,0.35c0.77,1.02 0.58,2.47 -0.42,3.27c0,0 -0.49,0.4 -0.49,0.4c-0.13,0.1 -0.18,0.27 -0.13,0.42c0,0 0.07,0.2 0.07,0.2c0.22,0.66 0.1,1.38 -0.31,1.93c-0.53,0.7 -1.36,1.12 -2.24,1.12c0,0 -3.91,-0.01 -3.91,-0.01c-2.09,0 -4.14,-0.54 -5.95,-1.58c0,0 -0.28,-0.15 -0.28,-0.15c-0.3,-0.18 -0.64,-0.27 -0.99,-0.27c0,0 -2.47,0 -2.47,0c-0.55,0 -1,-0.45 -1,-1c0,0 0,-5.99 0,-5.99c0,-0.56 0.45,-1.01 1,-1c0,0 2.79,0 2.79,0c0.43,0 0.8,-0.27 0.95,-0.67c0,0 0.2,-0.16 0.36,-0.6c0.6,-1.68 4.04,-1.95 4.69,-1.19z" fill="var(--normal-color)" id="svg_47"/>   </g>   <g display="none" id="svg_48" transform="matrix(0.547972 0.0549741 -0.0575915 0.523066 49.7345 48.9309)">    <path d="m-59.33,-53.69c3,-0.13 1.79,1.3 1.18,1.73c3.79,0.17 5.52,0.57 5.5,1.53c-0.09,3.7 -0.43,6.83 -2.85,9.66c-6.53,1.38 -11.75,-2.2 -14.5,-2.02c-0.05,-1.73 -0.24,-4.32 0.13,-6.58c3.91,-0.29 6.93,-4.18 10.54,-4.32z" fill="var(--normal-color)" id="svg_49"/>   </g>   <g display="block" id="svg_50" transform="matrix(0.959954 0 0 0.909324 22.9493 21.8543)">    <path d="m-16.06,-22.78c0.16,-0.46 0.63,-0.74 1.11,-0.66c0,0 1.04,0.17 1.04,0.17c2.25,0.38 3.73,2.55 3.25,4.78c0,0 -0.62,2.91 -0.62,2.91c0,0 4.06,0 4.06,0c1.72,0 3.21,1.19 3.58,2.87c0.23,1.03 -0.01,2.13 -0.64,2.98c0,0 0.02,0.09 0.02,0.09c0.3,1.28 -0.09,2.63 -1.02,3.56c0,0 0,0.04 0,0.04c0,0 -0.01,0.23 -0.01,0.23c-0.02,0.22 -0.06,0.45 -0.13,0.66c0,0 -0.11,0.29 -0.11,0.29c-0.59,1.37 -1.94,2.28 -3.45,2.28c0,0 -3.61,0 -3.61,0c0,0 -0.39,-0.01 -0.39,-0.01c-1.83,-0.06 -3.61,-0.53 -5.23,-1.39c0,0 -0.34,-0.18 -0.34,-0.18c0,0 -0.27,-0.16 -0.27,-0.16c-0.26,-0.15 -0.56,-0.24 -0.86,-0.26c0,0 -0.13,0 -0.13,0c0,0 -1.97,0 -1.97,0c-0.83,0 -1.5,-0.67 -1.5,-1.5c0,0 0,-6 0,-6c0,-0.83 0.67,-1.5 1.5,-1.5c0,0 1.79,0 1.79,0c0,0 0.16,-0.01 0.16,-0.01c0.31,-0.05 0.57,-0.24 0.72,-0.52c0,0 0.06,-0.14 0.06,-0.14c0,0 2.99,-8.53 2.99,-8.53zm-1.1,9.19c-0.42,1.2 -1.55,2.01 -2.83,2.01c0,0 -1.29,0 -1.29,0c0,0 0,5 0,5c0,0 1.47,0 1.47,0c0.69,0 1.38,0.18 1.98,0.53c0,0 0.27,0.15 0.27,0.15c0,0 0.29,0.16 0.29,0.16c1.44,0.76 3.05,1.16 4.68,1.16c0,0 3.61,0 3.61,0c0.75,0 1.42,-0.48 1.66,-1.2c0,0 0.03,-0.13 0.03,-0.13c0.01,-0.04 0.01,-0.08 0.01,-0.13c0,0 0,-0.87 0,-0.87c0,0 0.59,-0.58 0.59,-0.58c0.38,-0.39 0.57,-0.93 0.52,-1.47c0,0 -0.04,-0.23 -0.04,-0.23c0,0 -0.02,-0.09 -0.02,-0.09c0,0 -0.21,-0.9 -0.21,-0.9c0,0 0.55,-0.74 0.55,-0.74c0.29,-0.39 0.4,-0.89 0.29,-1.36c-0.17,-0.76 -0.84,-1.3 -1.62,-1.3c0,0 -4.06,0 -4.06,0c-0.6,0 -1.18,-0.27 -1.56,-0.74c-0.38,-0.47 -0.52,-1.09 -0.4,-1.68c0,0 0.63,-2.9 0.63,-2.9c0.24,-1.12 -0.5,-2.21 -1.63,-2.4c0,0 -0.21,-0.03 -0.21,-0.03c0,0 -2.71,7.74 -2.71,7.74z" fill="var(--normal-color)" id="svg_51"/>   </g>  </g> </g></svg>
+              {{ likeCount }}
+            </div>
             <StreamPlayer :videoId="videoId" :streamType="'3'" />
+            <button class="add-playlist-btn" @click.stop="openPlaylistModal" title="プレイリストに追加">
+              <svg style="padding-right: 3px;" width="20" height="20" xmlns="http://www.w3.org/2000/svg" xmlns:svg="http://www.w3.org/2000/svg" display="inherit"> <g class="layer">  <title>Layer 1</title>  <path d="m16.41,0.98l-12.69,0a1.81,1.79 0 0 0 -1.81,1.79l0,15.09c0,1.13 1.25,1.83 2.24,1.25l5.92,-3.5l5.92,3.5c0.99,0.58 2.24,-0.13 2.24,-1.25l0,-15.09a1.81,1.79 0 0 0 -1.81,-1.79zm-12.69,16.28l0,-14.5l12.69,0l0,14.5l-5.88,-3.47l-0.47,-0.28l-0.47,0.28l-5.88,3.47z" id="svg_1" fill="var(--normal-color)"/> </g></svg>
+              プレイリスト
+            </button>
           </div>
         </div>
-        <div class="video-description">
-          <div v-if="!showFullDescription" class="description-preview">
-            <p v-if="descriptionRun0">{{ descriptionRun0 }}</p>
-            <p v-if="descriptionRun1">{{ descriptionRun1 }}</p>
-          </div>
-          <div
-            v-else
-            class="description-full"
-            v-html="formattedDescription"
-          ></div>
-
-          <span
-            class="description-toggle"
-            role="button"
-            tabindex="0"
-            @click="toggleDescription"
-            @keydown.enter="toggleDescription"
-            @keydown.space.prevent="toggleDescription"
-          >
-            {{ showFullDescription ? "一部を表示" : "...もっと見る" }}
-          </span>
-        </div>
+        <VideoDescription
+          :descriptionRun0="descriptionRun0"
+          :descriptionRun1="descriptionRun1"
+          :formattedDescription="formattedDescription"
+          :showFull="showFullDescription"
+          @toggle="(v) => { showFullDescription = v }"
+        />
       </div>
       <Comment :videoId="videoId" />
     </div>
 
-    <aside v-if="relatedVideos.length" class="related-section">
-      <PlaylistComponent
-        v-if="playlistId"
-        displayType="watch"
-        :playlistId="playlistId"
-        :playVideoId="videoId"
-      />
-      <h3 class="related-title">関連動画</h3>
-      <ul class="related-list">
-        <li
-          v-for="r in relatedVideos"
-          :key="r.videoId"
-          class="related-item"
-          :data-video-id="r.videoId"
-          :data-duration="`${r.duration}`"
-          @mouseenter="hoverId = r.videoId"
-          @mouseleave="hoverId = null"
-        >
-          <router-link v-if="r.videoId" :to="r.replaylistId && r.replaylistId.length > 20 ? `/watch?v=${r.videoId}&list=${r.replaylistId}` : `/watch?v=${r.videoId}`" class="page-link">
-            <div class="thumb-wrapper">
-              <img
-                v-if="hoverId !== r.videoId || !r.previewUrl"
-                :src="'data:image/jpeg;base64,' + r.base64imge"
-                :alt="r.title"
-                class="thumb-img"
-                @error="onImageError($event, r.videoId)"
-              />
-              <span
-                v-if="r.badge"
-                class="duration-badge"
-                :class="{
-                  'badge-live': r.badge.toLowerCase().includes('ライブ'),
-                }"
-              >
-                {{ r.badge }} <!-- duration: {{ r.duration }}s -->
-              </span>
-            </div>
-          </router-link>
-          <router-link v-if="r.videoId" :to="r.replaylistId && r.replaylistId.length > 20 ? `/watch?v=${r.videoId}&list=${r.replaylistId}` : `/watch?v=${r.videoId}`" class="page-link">
-            <div class="video-info">
-              <span class="video-title-related" :title="r.title">{{ r.title }}</span>
-              <div class="video-metadata">
-                <div class="one-line re-actername">{{ r.metadataRow1 }}</div>
-                <span v-if="r.metadataRow2Part1 && r.metadataRow2Part1.replace(/\s+/g, '') !== '本日更新'">{{ r.metadataRow2Part1.replace(/\s+/g, '') === '再生リストの全体を見る' ? '再生リスト' : r.metadataRow2Part1.replace(/\s+/g, '') }}</span>
-                <span v-if="r.metadataRow2Part2 && r.metadataRow2Part2.replace(/\s+/g, '')" class="dot">・</span>{{ r.metadataRow2Part2 ? r.metadataRow2Part2.replace(/\s+/g, '') : '' }}
-              </div>
-            </div>
-          </router-link>
-        </li>
-      </ul>
-    </aside>
+    <RelatedList v-if="relatedVideos.length" :relatedVideos="relatedVideos" :playlistId="playlistId" :currentVideoId="videoId" :loadingMore="loadingMore" @load-more="loadMoreRelatedVideos" />
     <div v-else-if="error" class="error-msg">
       ⚠️ {{ error }}<br>
       <button class="reload-btn" @click="reloadVideo">再取得</button>
@@ -157,10 +81,8 @@
     <p v-else class="loading-msg">読み込み中...<br>読み込む速度を早くする方法。↓<br>右上の設定マークからカスタムエンドポイントのを追加してください　＊方法は簡単で1~3分で作れます。</p>
 
     <!-- 自動再生フィルタ通知 -->
-    <div v-if="showAutoplayNotification" class="autoplay-notification">
-      <span class="notification-text">{{ autoplayNotificationMessage }}</span>
-      <button class="notification-close" @click="showAutoplayNotification = false">×</button>
-    </div>
+    <AutoplayNotification v-if="showAutoplayNotification" :message="autoplayNotificationMessage" @close="showAutoplayNotification = false" />
+    <PlaylistModal v-if="showPlaylistModal" :video="video" @close="closePlaylistModal" @added="onPlaylistAdded" />
   </div>
 </template>
 
@@ -186,8 +108,28 @@ function switchStream() {
 
 <script>
 import { apiRequest } from "@/services/requestManager";
+import { addVideoToHistory } from "@/utils/historyManager";
+import PlaylistComponent from "@/components/Playlist.vue";
+import Comment from "@/components/Comment.vue";
+import StreamPlayer from "@/components/StreamPlayer.vue";
+import StreamTypeDropdown from "@/components/StreamTypeDropdown.vue";
+import VideoDescription from "@/components/VideoDescription.vue";
+import RelatedList from "@/components/RelatedList.vue";
+import AutoplayNotification from "@/components/AutoplayNotification.vue";
+import PlaylistModal from "@/components/PlaylistModal.vue";
+import subscriptionManager from "@/utils/subscriptionManager";
 
 export default {
+  components: {
+    PlaylistComponent,
+    Comment,
+    StreamPlayer,
+    StreamTypeDropdown,
+    VideoDescription,
+    RelatedList,
+    AutoplayNotification,
+    PlaylistModal,
+  },
   props: {
     videoId: { type: String, required: true },
     streamType: { type: String, default: "" },
@@ -204,6 +146,10 @@ export default {
       _autoplayDecisionTimer: null,
       showAutoplayNotification: false,
       autoplayNotificationMessage: "",
+      showPlaylistModal: false,
+      nextContinuationToken: null,
+      loadingMore: false,
+      subscribedLocal: false,
     };
   },
   computed: {
@@ -233,6 +179,9 @@ export default {
     },
     authorThumbnailUrl() {
       return this.video?.author?.thumbnail || "情報なし";
+    },
+    isSubscribedComputed() {
+      return subscriptionManager.isSubscribed(this.authorId);
     },
     descriptionText() {
       return this.video?.description?.text || "情報なし";
@@ -264,24 +213,39 @@ export default {
       return this.video?.description?.run3 || "";
     },
     relatedVideos() {
-      const feed = this.video?.related || [];
+      const feed = this.video?.["Related-videos"]?.relatedVideos || [];
       const mapped = feed.map((item) => {
-        // Try to extract duration from badge (e.g., "1:23:45" or "4:30")
-        let duration = item.duration || 0;
-        if (!duration && item.badge) {
-          duration = this.parseDurationFromBadge(item.badge);
+        if (item.type === "playlist") {
+          // Handle playlist items
+          return {
+            type: item.type,
+            base64imge: item.thumbnail || "",
+            badge: "",
+            title: item.title || "",
+            metadataRow1: "再生リスト",
+            metadataRow2Part1: "",
+            metadataRow2Part2: "",
+            videoId: item.videoId || "",
+            replaylistId: item.playlistId || "",
+            duration: 0,
+            verifiedIcon: null,
+          };
+        } else {
+          // Handle video items
+          return {
+            type: item.type,
+            base64imge: item.thumbnail || "",
+            badge: item.badge || "",
+            title: item.title || "",
+            metadataRow1: item.channelName || "",
+            metadataRow2Part1: item.viewCountText || "",
+            metadataRow2Part2: item.publishedTimeText || "",
+            videoId: item.videoId || "",
+            replaylistId: "",
+            duration: item.duration || 0,
+            verifiedIcon: item.verifiedIcon || null,
+          };
         }
-        return {
-          base64imge: item.thumbnail || "",
-          badge: item.badge || "",
-          title: item.title || "",
-          metadataRow1: item.channel,
-          metadataRow2Part1: item.views || "",
-          metadataRow2Part2: item.uploaded || "",
-          videoId: item.videoId || "",
-          replaylistId: item.playlistId || "",
-          duration: duration,
-        };
       });
       
       // Debug: log the first item to see what data we have
@@ -357,6 +321,55 @@ export default {
       console.log(`  No pattern matched`);
       return 0;
     },
+
+    async toggleSubscribe() {
+      try {
+        const id = this.authorId;
+        console.debug('toggleSubscribe clicked', { id, subscribedBefore: subscriptionManager.isSubscribed(id) });
+        if (!id || id === '情報なし') return;
+        if (subscriptionManager.isSubscribed(id)) {
+          // Unsubscribe immediately
+          subscriptionManager.removeSubscription(id);
+          this.subscribedLocal = false;
+          try { window.dispatchEvent(new CustomEvent('subscriptions-changed')); } catch(e){}
+          console.debug('after remove, subscriptions', subscriptionManager.getSubscriptions());
+          this.autoplayNotificationMessage = 'チャンネル登録を解除しました';
+          this.showAutoplayNotification = true;
+          setTimeout(() => (this.showAutoplayNotification = false), 2000);
+        } else {
+          // Optimistically add subscription immediately (show thumbnail URL first if available)
+          const initialIcon = (this.authorThumbnailUrl && this.authorThumbnailUrl !== '情報なし') ? this.authorThumbnailUrl : null;
+          subscriptionManager.addSubscription({ id, name: this.authorName, icon: initialIcon });
+          this.subscribedLocal = true;
+          try { window.dispatchEvent(new CustomEvent('subscriptions-changed')); } catch(e){}
+          console.debug('after add, subscriptions', subscriptionManager.getSubscriptions());
+          this.autoplayNotificationMessage = 'チャンネルを登録しました';
+          this.showAutoplayNotification = true;
+          setTimeout(() => (this.showAutoplayNotification = false), 2000);
+
+          // Fetch icon asynchronously and update subscription when available
+          (async () => {
+            try {
+              const fetchedIcon = await subscriptionManager.fetchImageAsBase64(this.authorThumbnailUrl);
+              if (fetchedIcon) {
+                subscriptionManager.updateSubscription(id, { icon: fetchedIcon });
+              } else if (this.authorThumbnailUrl && this.authorThumbnailUrl !== '情報なし') {
+                // If base64 fetch failed, fall back to original URL so image still shows
+                subscriptionManager.updateSubscription(id, { icon: this.authorThumbnailUrl });
+              }
+            } catch (e) {
+              console.warn('icon fetch failed', e);
+            }
+          })();
+        }
+        // ensure we re-sync shortly after in case of timing issues
+        setTimeout(() => {
+          try { this.subscribedLocal = subscriptionManager.isSubscribed(this.authorId); } catch (e) {}
+        }, 50);
+      } catch (e) {
+        console.error('toggleSubscribe error', e);
+      }
+    },
     setCookieSafe(name, value, seconds) {
       try {
         const expires = new Date(Date.now() + seconds * 1000).toUTCString();
@@ -413,8 +426,11 @@ export default {
                   : null;
               if (next && next.videoId) {
                 const query = { v: next.videoId, autoplay: "1" };
-                if (next.replaylistId && next.replaylistId.length > 20)
+                if (next.replaylistId && next.replaylistId.length > 20) {
                   query.list = next.replaylistId;
+                } else if (playlistId.value) {
+                  query.list = playlistId.value;
+                }
                 this.$router.push({ path: "/watch", query });
               }
             }, 3000);
@@ -462,6 +478,22 @@ export default {
       }
     },
 
+    openPlaylistModal() {
+      this.showPlaylistModal = true;
+    },
+    closePlaylistModal() {
+      this.showPlaylistModal = false;
+    },
+    onPlaylistAdded({ playlistId }) {
+      // optional: show a brief notification
+      try {
+        this.autoplayNotificationMessage = 'プレイリストに追加しました';
+        this.showAutoplayNotification = true;
+        setTimeout(() => (this.showAutoplayNotification = false), 2000);
+      } catch (e) {}
+      this.closePlaylistModal();
+    },
+
     // --- fetchのみ（JSONのみ対応）
     async fetchVideoData(id) {
       const maxRetries = 3;
@@ -476,14 +508,37 @@ export default {
         this.error = null;
         // requestManager の apiRequest を使って中央集約されたリクエストを実行
         const data = await apiRequest({
-          params: { video: id },
+          // Use raw query formatting required: video=動画ID==p==depth==i==1
+          params: { __rawQuery: `video=${id}==p==depth==i==1` },
           method: "GET",
           retries: maxRetries,
           timeout: 15000,
         });
 
         this.video = data;
-        if (!Array.isArray(data.related) || data.related.length === 0) {
+        this.nextContinuationToken = data["Related-videos"]?.nextContinuationToken || null;
+        // Sync subscribed state immediately after we have the author id
+        try {
+          this.subscribedLocal = subscriptionManager.isSubscribed(this.authorId);
+        } catch (e) {
+          console.warn('subscribed sync error', e);
+        }
+        
+        // 履歴に保存（非同期で実行、エラーは無視）
+        try {
+          await addVideoToHistory({
+            id: data.id,
+            title: data.title,
+            views: data.views,
+            author: data.author,
+            description: data.description,
+            thumbnail: data.thumbnail,
+          });
+        } catch (historyError) {
+          console.warn('Failed to save to history:', historyError);
+        }
+        
+        if (!data["Related-videos"] || !Array.isArray(data["Related-videos"].relatedVideos) || data["Related-videos"].relatedVideos.length === 0) {
           this.error = "関連動画が見つかりませんでした。";
         }
         return;
@@ -526,6 +581,29 @@ export default {
       this.isDropdownOpen = false;
       this.onStreamTypeChange();
     },
+    async loadMoreRelatedVideos() {
+      if (!this.nextContinuationToken || this.loadingMore) return;
+      this.loadingMore = true;
+      try {
+        const data = await apiRequest({
+          // Use raw query formatting required:
+          // video=動画ID==p==token==i==トークン==p==depth==i==2
+          params: { __rawQuery: `video=${this.videoId}==p==token==i==${this.nextContinuationToken}==p==depth==i==2` },
+          method: "GET",
+          retries: 3,
+          timeout: 15000,
+        });
+        if (data["Related-videos"] && Array.isArray(data["Related-videos"].relatedVideos)) {
+          // Append new related videos
+          this.video["Related-videos"].relatedVideos.push(...data["Related-videos"].relatedVideos);
+          this.nextContinuationToken = data["Related-videos"].nextContinuationToken || null;
+        }
+      } catch (err) {
+        console.error("loadMoreRelatedVideos error:", err);
+      } finally {
+        this.loadingMore = false;
+      }
+    },
     handleClickOutside(event) {
       if (this.isDropdownOpen && !this.$el.contains(event.target)) {
         this.isDropdownOpen = false;
@@ -536,14 +614,38 @@ export default {
         this.isDropdownOpen = false;
       }
     },
+    onSubscriptionsChanged() {
+      try {
+        // Update local subscribed flag from storage so UI keeps consistent
+        const val = subscriptionManager.isSubscribed(this.authorId);
+        console.debug('subscriptions-changed received on watch page', { id: this.authorId, subscribed: val });
+        this.subscribedLocal = val;
+      } catch (e) { console.warn('onSubscriptionsChanged error', e); }
+    },
   },
   mounted() {
     document.addEventListener("click", this.handleClickOutside);
     document.addEventListener("keydown", this.handleEscape);
+    window.addEventListener('subscriptions-changed', this.onSubscriptionsChanged);
+
+    // initialize local subscribed state
+    this.subscribedLocal = subscriptionManager.isSubscribed(this.authorId);
+
+    // watch for storage changes from other tabs
+    this._storageHandler = (e) => {
+      if (e.key === 'subscriptions_v1') {
+        const val = subscriptionManager.isSubscribed(this.authorId);
+        console.debug('storage event on watch page', { key: e.key, subscribed: val });
+        this.subscribedLocal = val;
+      }
+    };
+    window.addEventListener('storage', this._storageHandler);
   },
   beforeUnmount() {
     document.removeEventListener("click", this.handleClickOutside);
     document.removeEventListener("keydown", this.handleEscape);
+    window.removeEventListener('subscriptions-changed', this.onSubscriptionsChanged);
+    window.removeEventListener('storage', this._storageHandler);
     if (this._autoplayTimer) {
       clearTimeout(this._autoplayTimer);
       this._autoplayTimer = null;
@@ -561,12 +663,36 @@ export default {
         document.title = newTitle;
       }
     },
+    authorId(newVal) {
+      // keep local subscribed in-sync when author changes
+      this.subscribedLocal = subscriptionManager.isSubscribed(newVal);
+    },
   },
 };
 </script>
 
 
 <style scoped>
+.add-playlist-btn {
+  display: flex;
+  padding: 6px 11px;
+  background: var(--download-button);
+  color: var(--text-primary);
+  border: none;
+  border-radius: 30px;
+  cursor: pointer;
+}
+#mainvideo-likeCount {
+    font-size: 14px;
+    padding: 4px 11px;
+    background: var(--download-button);
+    color: var(--text-primary);
+    border: none;
+    border-radius: 30px;
+    cursor: pointer;
+    display: flex;
+}
+
 .dropdown-ending {
   display: inline-block;
   font-size: 1rem;
@@ -648,6 +774,28 @@ p {
   align-items: center;
   gap: 12px;
   margin-bottom: 12px;
+}
+
+.channel-controls {
+  margin-left: auto; /* push to the right */
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.subscribe-btn{
+  font-size: 0.9rem;
+  padding: 0.5rem 1rem;
+  border-radius: 6px;
+  border: 1px solid var(--border-color);
+  background: var(--bg-secondary);
+  color: var(--text-primary);
+  cursor: pointer;
+}
+.subscribe-btn.subscribed{
+  background: var(--accent-color);
+  color: var(--on-accent);
+  border-color: rgba(0,0,0,0.05);
 }
 
 .page-link {

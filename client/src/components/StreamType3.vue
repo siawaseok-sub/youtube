@@ -1,7 +1,8 @@
 <template>
   <!-- メインボタン -->
-  <button @click="openPopup" class="download-main-btn">
-    この動画をダウンロード
+  <button @click="openPopup" class="download-main-btn" style="display: flex;">
+    <span><div style="width: 90%; height: 90%; display: block; fill: currentcolor;"><svg xmlns="http://www.w3.org/2000/svg" height="24" viewBox="0 0 24 24" width="24" focusable="false" aria-hidden="true" style="pointer-events: none; display: inherit; width: 100%; height: 100%;"><path d="M12 2a1 1 0 00-1 1v11.586l-4.293-4.293a1 1 0 10-1.414 1.414L12 18.414l6.707-6.707a1 1 0 10-1.414-1.414L13 14.586V3a1 1 0 00-1-1Zm7 18H5a1 1 0 000 2h14a1 1 0 000-2Z"></path></svg></div></span>
+    ダウンロード
   </button>
 
   <!-- ポップアップ -->
@@ -49,7 +50,7 @@
 
             <!-- m3u8 proxy -->
             <div class="option" v-if="m3u8ProxyList.length">
-              <strong>m3u8（proxy）<span style="font-weight: normal;">*外部サイト(m3u8ダウンロードサイトで検索)との併用でダウンロード可能:</span></strong>
+              <strong>m3u8（proxy）<span style="font-weight: normal;">*外部サイト(<a href="https://m3u8.dev">https://m3u8.dev</a>)との併用でダウンロード可能 *制限がない環境:</span></strong>
               <div v-for="u in m3u8ProxyList" :key="u.url" class="m3u8-row">
                 <div class="meta">
                   {{ u.resolution || "-" }}
@@ -216,11 +217,11 @@ async function copyUrl(url) {
   flex: 1;
 }
 .download-main-btn {
-  padding: 8px 16px;
+  padding: 6px 11px;
   background: var(--download-button);
   color: var(--text-primary);
   border: none;
-  border-radius: 4px;
+  border-radius: 30px;
   cursor: pointer;
 }
 
@@ -238,7 +239,7 @@ async function copyUrl(url) {
   background: var(--bg-primary);
   padding: 20px;
   border-radius: 8px;
-  width: 420px;
+  width: 520px;
   position: relative;
   max-height: 80vh;
   overflow-y: auto;

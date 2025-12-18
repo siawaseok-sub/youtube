@@ -125,6 +125,17 @@ const displayMode = ref('device');
 const isDarkMode = ref(false);
 let mq = null;
 let mqHandler = null;
+let classObserver = null;
+
+const updateDarkFromDocClass = () => {
+  try {
+    isDarkMode.value = document && document.documentElement && document.documentElement.classList
+      ? document.documentElement.classList.contains('dark-mode')
+      : false;
+  } catch (e) {
+    isDarkMode.value = false;
+  }
+};
 
 // Receive sidebar state from parent
 const props = defineProps({ sidebarOpen: { type: Boolean, default: true } });
@@ -147,9 +158,6 @@ onMounted(() => {
     viewportWidth.value = window.innerWidth;
   };
   window.addEventListener('resize', handleResize);
-
-  // 初期状態の設定
-  initializeSidebarState();
 
   // Load custom endpoints
   try {
@@ -180,6 +188,15 @@ onMounted(() => {
     displayMode.value = 'device';
     isDarkMode.value = computeIsDarkFromMode(displayMode.value);
   }
+
+  // initialize from document class and observe changes so header icon updates when SettingsView toggles dark-mode
+  try {
+    updateDarkFromDocClass();
+    if (window.MutationObserver) {
+      classObserver = new MutationObserver(() => updateDarkFromDocClass());
+      classObserver.observe(document.documentElement, { attributes: true, attributeFilter: ['class'] });
+    }
+  } catch (e) {}
 });
 
 onBeforeUnmount(() => {
@@ -191,6 +208,11 @@ onBeforeUnmount(() => {
       if (mq.removeEventListener) mq.removeEventListener('change', mqHandler);
       else if (mq.removeListener) mq.removeListener(mqHandler);
     }
+  } catch (e) {}
+
+  // disconnect mutation observer
+  try {
+    if (classObserver) classObserver.disconnect();
   } catch (e) {}
 });
 

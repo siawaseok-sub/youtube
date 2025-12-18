@@ -1,4 +1,6 @@
 :root {
+  --normal-color:#000000;
+  --normal-text: #1a1a1a;
   --bg-primary: #ffffff;
   --bg-secondary: #f5f5f5;
   --text-primary: #000000;
@@ -22,11 +24,13 @@
   --link-color: #0008ff;
   --video-meta-bg: rgba(0, 0, 0, 0.05);
   --description-bg: rgba(0, 0, 0, 0.02);
-  --download-button: #bfbfbf;
+  --download-button: #d4d2d2;
   --search-border: #f1eeee;
 }
 
 html.dark-mode {
+  --normal-color:#ffffff;
+  --normal-text: #e8e8e8;
   --bg-primary: #1a1a1a;
   --bg-secondary: #2a2a2a;
   --text-primary: #e0e0e0;

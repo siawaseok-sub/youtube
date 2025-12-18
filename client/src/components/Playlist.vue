@@ -5,14 +5,20 @@
 
   <section v-else-if="playlist" class="playlist-section" :class="`type-${displayType}`">
     <template v-if="displayType !== 'channel'">
-      <h2 class="playlist-title" style="color: var(--text-primary);">{{ playlist.title }}</h2>
+      <h2 class="playlist-title" style="color: var(--text-primary);">
+        {{ playlist.title }}
+      </h2>
       <p class="playlist-meta" style="color: var(--text-primary);">
         動画本数: {{ playlist.totalItems }}
-        <span class="views" v-if="displayType !== 'watch'">｜再生数: {{ playlist.views }}回</span>
+        <span
+          class="views"
+          v-if="displayType !== 'watch' && playlist.views"
+        >
+          ｜ {{ playlist.views }}
+        </span>
       </p>
     </template>
 
-    <!-- スクロール対象コンテナに ref を追加 -->
     <div
       ref="scrollContainer"
       class="playlist-items-scroll"
@@ -25,35 +31,72 @@
         :class="{ active: item.videoId === playVideoId }"
         :data-video-id="item.videoId"
       >
-        <router-link :to="displayType !== 'channel' ? `/watch?v=${item.videoId}&list=${playlist.playlistId}` : `/watch?v=${item.videoId}`" class="video-link">
+        <router-link
+          :to="displayType !== 'channel'
+            ? `/watch?v=${item.videoId}&list=${playlist.playlistId}`
+            : `/watch?v=${item.videoId}`"
+          class="video-link"
+        >
+          <!-- watch レイアウト -->
           <div v-if="displayType === 'watch'" class="watch-layout">
             <div class="thumbnail-wrapper small-thumb">
               <img
                 :src="item.thumbnail || getPrimaryThumbnail(item.videoId)"
-                alt="動画サムネイル"
                 class="thumbnail"
                 @error="onImageError($event, item.videoId)"
               />
-              <span class="duration" v-if="item.duration">{{ item.duration }}</span>
+              <span class="duration" v-if="item.duration">
+                {{ item.duration }}
+              </span>
             </div>
+
             <div class="text-content">
-              <p class="title" :title="item.title">{{ item.title }}</p>
+              <p class="title">{{ item.title }}</p>
               <p class="author">{{ item.author }}</p>
+
+              <p class="meta-info" v-if="item.views || item.published">
+                <span v-if="item.views">
+                  <template v-if="isNumericOnly(item.views)">
+                    {{ item.views }}人が待機中
+                  </template>
+                  <template v-else>
+                    {{ item.views }}
+                  </template>
+                </span>
+                <span v-if="item.views && item.published"> • </span>
+                <span v-if="item.published">{{ item.published }}</span>
+              </p>
             </div>
           </div>
 
+          <!-- 通常レイアウト -->
           <div v-else>
             <div class="thumbnail-wrapper">
               <img
                 :src="item.thumbnail || getPrimaryThumbnail(item.videoId)"
-                alt="動画サムネイル"
                 class="thumbnail"
                 @error="onImageError($event, item.videoId)"
               />
-              <span class="duration" v-if="item.duration">{{ item.duration }}</span>
+              <span class="duration" v-if="item.duration">
+                {{ item.duration }}
+              </span>
             </div>
-            <p class="title" :title="item.title">{{ item.title }}</p>
+
+            <p class="title">{{ item.title }}</p>
             <p class="author">{{ item.author }}</p>
+
+            <p class="meta-info" v-if="item.views || item.published">
+              <span v-if="item.views">
+                <template v-if="isNumericOnly(item.views)">
+                  {{ item.views }}人が待機中
+                </template>
+                <template v-else>
+                  {{ item.views }}
+                </template>
+              </span>
+              <span v-if="item.views && item.published"> • </span>
+              <span v-if="item.published">{{ item.published }}</span>
+            </p>
           </div>
         </router-link>
       </div>
@@ -84,13 +127,18 @@ const route = useRoute();
 const playlist = ref(null);
 const loading = ref(false);
 const error = ref(false);
-
-// スクロール対象の要素への参照
 const scrollContainer = ref(null);
 
 const playlistId = computed(() => props.playlistId || route.query.list || "");
-const playVideoId = computed(() => props.playVideoId || route.query.play || "");
+const playVideoId = computed(() => props.playVideoId || route.query.play || route.query.v || "");
 const displayType = computed(() => props.displayType || route.query.type || "default");
+
+function isNumericOnly(value) {
+  if (value === null || value === undefined) return false;
+  if (typeof value === "number") return true;
+  if (typeof value !== "string") return false;
+  return /^[0-9]+$/.test(value);
+}
 
 onMounted(async () => {
   if (!playlistId.value) {
@@ -100,12 +148,11 @@ onMounted(async () => {
   }
 
   loading.value = true;
-  error.value = false;
 
   try {
-    // 中央管理された apiRequest を使用（JSONP フォールバックを許可）
+    const raw = route.query.v ? `playlist=${playlistId.value}==p==v==i==${route.query.v}` : `playlist=${playlistId.value}`;
     const data = await apiRequest({
-      params: { playlist: playlistId.value },
+      params: { __rawQuery: raw },
       retries: 1,
       timeout: 30000,
       jsonpFallback: true,
@@ -113,22 +160,19 @@ onMounted(async () => {
 
     playlist.value = data;
 
-    if (displayType.value !== "watch" && displayType.value !== "channel" && playlist.value?.title) {
-      document.title = `${playlist.value.title} - プレイリスト`;
-    }
-
     await nextTick();
-    // 中央にスクロール
     if (playVideoId.value && scrollContainer.value) {
-      const containerEl = scrollContainer.value;
-      const target = containerEl.querySelector(`.playlist-item[data-video-id="${playVideoId.value}"]`);
+      const target = scrollContainer.value.querySelector(
+        `.playlist-item[data-video-id="${playVideoId.value}"]`
+      );
       if (target) {
-        const containerRect = containerEl.getBoundingClientRect();
-        const targetRect = target.getBoundingClientRect();
-        const relativeTop = targetRect.top - containerRect.top;
-        const scrollOffset =
-          containerEl.scrollTop + relativeTop - containerEl.clientHeight / 2 + target.clientHeight / 2;
-        containerEl.scrollTo({ top: scrollOffset, behavior: 'smooth' });
+        scrollContainer.value.scrollTo({
+          top:
+            target.offsetTop -
+            scrollContainer.value.clientHeight / 2 +
+            target.clientHeight / 2,
+          behavior: "smooth",
+        });
       }
     }
   } catch (err) {
@@ -199,7 +243,6 @@ function onImageError(event, id) {
 .scroll-watch {
   display: flex;
   flex-direction: column;
-  gap: 5px;
   overflow-y: auto;
   max-height: 420px;
   padding-right: 6px;
@@ -254,6 +297,7 @@ function onImageError(event, id) {
 }
 
 .title {
+  margin-block-end: 3px;
   font-size: 0.9rem;
   font-weight: 600;
   text-align: left;
@@ -271,6 +315,8 @@ function onImageError(event, id) {
 }
 
 .author {
+  margin-block-start: 3px;
+  margin-block-end: 3px;
   font-size: 0.8rem;
   color: var(--text-secondary);
   text-align: left;
@@ -278,6 +324,17 @@ function onImageError(event, id) {
   overflow: hidden;
   text-overflow: ellipsis;
   margin-left: 2px;
+}
+
+.meta-info {
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+  text-align: left;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-left: 2px;
+  margin-top: 2px;
 }
 
 .watch-layout {

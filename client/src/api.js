@@ -1,6 +1,7 @@
-// APIエンドポイント（一覧）とランダムに1つ返す関数のみ
-
 const API_URLS = [
+  "https://script.google.com/macros/s/AKfycbxfRTCgjCmjQ8PRMhi_DEpRdjBbWifIHsvlOAKRWZqOIhX-xowMG0VJyEvG1yzCvrheyA/exec",
+  "https://script.google.com/macros/s/AKfycbwWN7HtCdHA7nmyYw_CU6th4IOQDSqJtC0BV7bMjLbrh64yuXXeLUz5_5Q87as1lTUF/exec",
+  "https://script.google.com/macros/s/AKfycbxOPej3whhrRtpuTJ3XhTXrScRDm105AfLZqWQ_-0iQRe1oj5W9jqBkei17vsknPv9AIQ/exec",
   "https://script.google.com/macros/s/AKfycbw6N3kCyGyAoiG4ShD_9ombBIadWnA6T4hrs8laghc_54GtF6Eq7DotiIBeJNYiJGcizQ/exec",
   "https://script.google.com/macros/s/AKfycbwlyB-QlxcFSnV3R9_XNzMFZwop0DoYz3eWyQX5Ii2Ts1IVXZZDAfpNRUbDwlkHlNfLKA/exec",
   "https://script.google.com/macros/s/AKfycbzqpav7y2x3q756wRSOhBzaXf-2hKaLTvxoFN8kFegrIvamH03ZXphEw2PK30L7AstC/exec",

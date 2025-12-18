@@ -5,7 +5,7 @@
       @toggle-sidebar="handleToggleSidebar"
       :sidebar-open="sidebarOpen"
     />
-    <Sidebar :open="sidebarOpen" />
+    <Sidebar :open="sidebarOpen" :is-watch-page="route.path === '/watch'" />
     <main class="app-content" :class="{ 'sidebar-closed': !sidebarOpen }">
       <router-view />
     </main>
@@ -18,6 +18,7 @@ import Sidebar from '@/components/Sidebar.vue';
 import SettingsView from '@/views/SettingsView.vue';
 import { ref, computed, provide, watch, onBeforeUnmount } from 'vue';
 import { loadDisplayMode, computeIsDarkFromMode } from '@/utils/settingsManager';
+import { useRoute } from 'vue-router';
 
 export default {
   name: 'App',
@@ -28,6 +29,7 @@ export default {
   },
   setup() {
     console.log('[App.vue] setup() called');
+    const route = useRoute();
     const viewportWidth = ref(window.innerWidth);
     // Initialize sidebarOpen based on screen width (consistent default)
     const sidebarOpen = ref(window.innerWidth >= 1315);
@@ -90,6 +92,24 @@ export default {
     };
     window.addEventListener('resize', updateSidebarByWidth);
 
+    // Monitor route changes - only control sidebar for /watch page
+    // For other pages, preserve the user's current sidebar state
+    const watchPageOpen = ref(null); // Store sidebar state before entering /watch
+    watch(() => route.path, (newPath) => {
+      if (newPath === '/watch') {
+        // Entering /watch: store current state and set to hidden
+        if (watchPageOpen.value === null) {
+          watchPageOpen.value = sidebarOpen.value;
+        }
+        sidebarOpen.value = false;
+      } else if (watchPageOpen.value !== null) {
+        // Leaving /watch: restore previous state
+        sidebarOpen.value = watchPageOpen.value;
+        watchPageOpen.value = null;
+      }
+      // For other page transitions, don't modify sidebarOpen
+    });
+
     // Provide settings modal functions
     console.log('[App.vue] Providing settingsModal with isOpen:', settingsModalOpen);
     provide('settingsModal', {
@@ -99,6 +119,7 @@ export default {
     });
 
     return {
+      route,
       sidebarOpen,
       toggleSidebar,
       handleToggleSidebar,
@@ -163,12 +184,27 @@ export default {
     margin-left: 70px;
   }
 }
-
 @media (min-width: 790px) and (max-width: 1314px) {
+  /* Default to open width unless the sidebar is explicitly closed */
   .app-content {
+    margin-left: 250px;
+  }
+
+  .app-content.sidebar-closed {
     margin-left: 70px;
   }
 }
+
+@media (max-width: 1330px) {
+  .app-content > .yt-watch-page {
+  }
+  .app-content > .yt-watch-page {
+  }
+  .app-content:has(> .yt-watch-page) {
+    margin-left: 0px;
+  }
+}
+
 
 @media (max-width: 789px) {
   .app-content {
