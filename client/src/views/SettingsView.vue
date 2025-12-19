@@ -107,7 +107,7 @@
               :checked="disableTimeouts"
               @change="handleDisableTimeoutsChange($event.target.checked)"
             />
-            タイムアウトを無くす（全てのリクエストでタイムアウトを無効化）
+            タイムアウトを無効化
           </label>
         </section>
       </div>
