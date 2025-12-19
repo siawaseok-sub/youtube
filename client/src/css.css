@@ -1,6 +1,7 @@
 :root {
   --normal-color:#000000;
   --normal-text: #1a1a1a;
+  --normal-back-color: #f8f8f8;
   --bg-primary: #ffffff;
   --bg-secondary: #f5f5f5;
   --text-primary: #000000;
@@ -31,6 +32,7 @@
 html.dark-mode {
   --normal-color:#ffffff;
   --normal-text: #e8e8e8;
+  --normal-back-color: #1f1e1e;
   --bg-primary: #1a1a1a;
   --bg-secondary: #2a2a2a;
   --text-primary: #e0e0e0;
@@ -67,4 +69,12 @@ body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   transition: background-color 0.3s ease, color 0.3s ease;
+}
+
+.channel-icon-link, .channel-name[role="button"] {
+  cursor: pointer;
+}
+.channel-name[role="button"]:focus, .channel-icon-link:focus {
+  outline: 2px solid var(--accent-color);
+  outline-offset: 2px;
 }

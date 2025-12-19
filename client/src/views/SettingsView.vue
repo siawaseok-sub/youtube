@@ -157,7 +157,7 @@ const defaultPlaybackMode = ref("1");
 const shortVideoFilterEnabled = ref(false);
 const shortVideoFilterMinutes = ref(4);
 const displayMode = ref('device');
-const jsonpOnlyForCustom = ref(true);
+const jsonpOnlyForCustom = ref(false);
 const disableTimeouts = ref(true);
 
 // Backup state (for cancel functionality)
@@ -269,7 +269,7 @@ const loadSettings = () => {
   try {
     jsonpOnlyForCustom.value = loadCustomEndpointsJsonpOnly();
   } catch (e) {
-    jsonpOnlyForCustom.value = true;
+    jsonpOnlyForCustom.value = false;
   }
   // タイムアウト無効化設定を読み込み
   try {

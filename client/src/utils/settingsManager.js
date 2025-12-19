@@ -196,12 +196,12 @@ export function saveCustomEndpointsJsonpOnly(enabled) {
 export function loadCustomEndpointsJsonpOnly() {
   try {
     const v = safeGetItem(STORAGE_KEYS.CUSTOM_ENDPOINTS_JSONP_ONLY, null);
-    // デフォルトを true に変更（ユーザーに優しい既定値）
-    if (v === null || v === undefined) return true;
+    // デフォルトは false（fetchへフォールバックする）
+    if (v === null || v === undefined) return false;
     return !!v;
   } catch (e) {
     console.error('loadCustomEndpointsJsonpOnly error', e);
-    return true;
+    return false;
   }
 }
 

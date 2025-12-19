@@ -7,18 +7,18 @@
 
       <h1 class="video-title" ref="videoTitle">{{ title }}</h1>
       <div class="video-info channel-info">
-        <router-link :to="`/channel/${authorId}`" class="channel-icon-link">
+          <div class="channel-icon-link" @click.stop="onChannelClick" @keydown.enter="onChannelClick" tabindex="0" role="button">
           <img
             :src="authorThumbnailUrl"
             alt="チャンネルアイコン"
             class="channel-icon"
             @error="onImageError($event, authorId)"
           />
-        </router-link>
+        </div>
         <div class="channel-text">
-          <router-link :to="`/channel/${authorId}`" class="channel-name">
+          <div class="channel-name" @click.stop="onChannelClick" @keydown.enter="onChannelClick" tabindex="0" role="button">
             {{ authorName }}
-          </router-link>
+          </div>
           <p class="subscriber-count">{{ subscriberCount }}</p>
         </div>
 
@@ -83,6 +83,13 @@
     <!-- 自動再生フィルタ通知 -->
     <AutoplayNotification v-if="showAutoplayNotification" :message="autoplayNotificationMessage" @close="showAutoplayNotification = false" />
     <PlaylistModal v-if="showPlaylistModal" :video="video" @close="closePlaylistModal" @added="onPlaylistAdded" />
+
+    <!-- コラボレーター一覧ポップアップ -->
+    <CollaboratorsPopup
+      v-if="showCollaboratorsPopup && video?.author?.collaborators"
+      :collaborators="video.author.collaborators"
+      @close="showCollaboratorsPopup = false"
+    />
   </div>
 </template>
 
@@ -117,6 +124,7 @@ import VideoDescription from "@/components/VideoDescription.vue";
 import RelatedList from "@/components/RelatedList.vue";
 import AutoplayNotification from "@/components/AutoplayNotification.vue";
 import PlaylistModal from "@/components/PlaylistModal.vue";
+import CollaboratorsPopup from "@/components/CollaboratorsPopup.vue";
 import subscriptionManager from "@/utils/subscriptionManager";
 
 export default {
@@ -129,6 +137,7 @@ export default {
     RelatedList,
     AutoplayNotification,
     PlaylistModal,
+    CollaboratorsPopup,
   },
   props: {
     videoId: { type: String, required: true },
@@ -150,6 +159,7 @@ export default {
       nextContinuationToken: null,
       loadingMore: false,
       subscribedLocal: false,
+      showCollaboratorsPopup: false,
     };
   },
   computed: {
@@ -175,10 +185,24 @@ export default {
       return this.video?.author?.id || "情報なし";
     },
     authorName() {
-      return this.video?.author?.name || "情報なし";
+      const author = this.video?.author;
+      if (!author) return "情報なし";
+      const name = author.name || "情報なし";
+      // コラボの場合は「、他Nチャンネル」を追加
+      if (author.collaborator && Array.isArray(author.collaborators) && author.collaborators.length > 1) {
+        const others = author.collaborators.length - 1;
+        return `${name}、他${others}チャンネル`;
+      }
+      return name;
     },
     authorThumbnailUrl() {
-      return this.video?.author?.thumbnail || "情報なし";
+      const author = this.video?.author;
+      if (!author) return "情報なし";
+      // コラボの場合、先頭のコラボレーターのサムネイルを優先
+      if (author.collaborator && Array.isArray(author.collaborators) && author.collaborators.length > 0) {
+        return author.collaborators[0].thumbnail || author.thumbnail || "情報なし";
+      }
+      return author.thumbnail || "情報なし";
     },
     isSubscribedComputed() {
       return subscriptionManager.isSubscribed(this.authorId);
@@ -339,7 +363,10 @@ export default {
         } else {
           // Optimistically add subscription immediately (show thumbnail URL first if available)
           const initialIcon = (this.authorThumbnailUrl && this.authorThumbnailUrl !== '情報なし') ? this.authorThumbnailUrl : null;
-          subscriptionManager.addSubscription({ id, name: this.authorName, icon: initialIcon });
+          // Use the underlying author/channel name for subscriptions (not the collaborator summary like "X、他4チャンネル")
+          const authorObj = this.video?.author || {};
+          const subName = authorObj.name || (authorObj.collaborator && Array.isArray(authorObj.collaborators) && authorObj.collaborators[0]?.name) || this.authorName;
+          subscriptionManager.addSubscription({ id, name: subName, icon: initialIcon });
           this.subscribedLocal = true;
           try { window.dispatchEvent(new CustomEvent('subscriptions-changed')); } catch(e){}
           console.debug('after add, subscriptions', subscriptionManager.getSubscriptions());
@@ -534,6 +561,8 @@ export default {
         if (!data["Related-videos"] || !Array.isArray(data["Related-videos"].relatedVideos) || data["Related-videos"].relatedVideos.length === 0) {
           this.error = "関連動画が見つかりませんでした。";
         }
+        // Reset popup state when new video loads
+        this.showCollaboratorsPopup = false;
         return;
       } catch (err) {
         console.error("fetchVideoData error:", err);
@@ -614,6 +643,21 @@ export default {
         console.debug('subscriptions-changed received on watch page', { id: this.authorId, subscribed: val });
         this.subscribedLocal = val;
       } catch (e) { console.warn('onSubscriptionsChanged error', e); }
+    },
+
+    onChannelClick(event) {
+      try {
+        const author = this.video?.author;
+        if (author && author.collaborator && Array.isArray(author.collaborators) && author.collaborators.length > 0) {
+          // show popup instead of navigate
+          this.showCollaboratorsPopup = true;
+          return;
+        }
+        if (!this.authorId || this.authorId === '情報なし') return;
+        this.$router.push({ path: `/channel/${this.authorId}` });
+      } catch (e) {
+        console.error('onChannelClick error', e);
+      }
     },
   },
   mounted() {
